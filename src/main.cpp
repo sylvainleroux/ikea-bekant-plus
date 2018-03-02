@@ -42,6 +42,7 @@ int pressedButton = 0;
 int lastPressedButton = 0;
 unsigned long lastPressed = 0;
 uint8_t doOnce = false;
+uint8_t manualInit = false;
 
 
 void printValues() {
@@ -232,6 +233,8 @@ void loopButtons() {
 
   if (pressedButton != 0) {
 
+    manualInit = true;
+
     if (lastPressedButton == moveUpButton) {
       moveTable(1);
       currentTarget = lastPosition + (targetThreshold * 2);
@@ -366,8 +369,14 @@ void loop() {
   // direction == 1 => Target is above table
   // direction == 2 => Target is below table
   uint8_t direction = desiredTableDirection();
-  moveTable(direction);
 
+  // Protect table movements on power outage
+  // The table tends to move to the lower position on power loss
+  // Which is problematic if objects stands just behind. Chair ?!!
+
+  if (manualInit){
+    moveTable(direction);
+  }
 
   if (Serial.available() > 0) {
 
